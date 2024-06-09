@@ -36,3 +36,320 @@
     transform: rotate(360deg);
   }
 }
+
+.logo {
+  width: 50px; /* Adjust width as needed */
+  height: auto; /* Maintain aspect ratio */
+  display: block; /* Ensure image behaves like a block element */
+  border-radius: 50%;
+}
+.clogo{
+  width: 150px;
+  height: auto;
+  margin: 5px;
+}
+.ends-2{
+  justify-content: space-between;
+}
+
+.header-menu{
+  height: 13vh;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  padding: 10px 0;
+  z-index: 100; 
+}
+
+.menu-item{
+  color: black;
+  /* background-color: white; */
+  text-decoration: none;
+}
+
+.menu-item:hover{
+  color: black;
+  /* background-color: white; */
+  text-decoration: none;
+}
+
+
+.div-body{
+  background-color: white;
+  height: 85vh;
+  width: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  margin-top: 13vh !important;
+  scrollbar-width: thin;
+  padding-right: 10px;
+}
+
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  /* margin-top: 13vh; */
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  overflow-x: hidden;
+}
+
+.sidebar {
+  width: 14vw !important;
+  min-width: 14vh !important;
+  margin-top: 13vh;
+  background-color: #e8f2ff;
+  height: 87vh;
+}
+
+.menu-item-container:active{
+  background-color: #007bff;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.user-count-text{
+  font-size: 35px;
+  font-weight: 500;
+}
+
+.mid-logos{
+  width: 100px;
+}
+
+
+
+.container {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 20px;
+}
+
+
+/* Adjust column widths */
+
+.col-id{
+  width: 7%;
+  cursor: pointer;
+}
+
+.col-name {
+  width: 20%;
+  cursor: pointer;
+}
+
+.col-email {
+  width: 30%;
+  cursor: pointer;
+}
+
+.col-company {
+  width: 20%;
+  cursor: pointer;
+}
+
+.col-title {
+  width: 15%;
+  cursor: pointer;
+}
+
+.col-actions {
+  width: 15%;
+  text-align: center;
+}
+
+tbody tr{
+  background-color: #61dafb !important;
+}
+
+
+/* .Card.Body {
+  padding: 20px;
+} */
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.activity-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 15px;
+}
+
+.activity-details p {
+  margin: 0;
+}
+
+.activity-details strong {
+  color: #333;
+}
+body, #root {
+  position: relative;
+  z-index: auto;
+}
+
+.account-settings {
+  padding: 20px;
+  background: #fff;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-img {
+  border-radius: 50%;
+  width: 150px;
+  height: auto;
+  margin-right: 20px;
+}
+
+
+.tbl-user-img {
+  border-radius: 50%;
+  width: 50px;
+  height: auto;
+}
+
+
+.section {
+  margin-top: 20px;
+}
+
+.section h4 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.field label {
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.field span {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.activity-container_cal {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fff;
+  max-width: 300px;
+  margin-top: 20px;
+}
+
+.activity-header_cal {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.activity-list_cal {
+  list-style: none;
+  padding: 0;
+}
+
+.activity-item_cal {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5px;
+}
+
+.activity-date_cal {
+  font-size: 14px;
+  color: #888;
+}
+
+.activity-details_cal {
+  margin-top: 5px;
+}
+
+.activity-title_cal {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+
+.by{
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.with-icon::before {
+  font-family: Font Awesome; /* Replace with your icon font library name */
+  content: "\f00C"; /* Font Awesome code for check mark */
+  margin-right: 10px; /* Adjust margin as needed */
+}
+
+.max-height-country{
+  max-height: 200px;
+}
