@@ -1,14 +1,12 @@
 import React,{useState } from 'react';
 import { Container, Form, Button} from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import useProfileStore from '../zustand_store/profileStore';
 
 const Login = ({ props }) => {
-  const { hasAcc, setHasAcc, setIsLogin } = props;
+  const { setHasAcc, setIsLogin } = props;
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const setProfile = useProfileStore((state) => state.setProfile); 
   // const profile = useProfileStore((state) => state.profile);
 
   const handleChange = (e) => {
@@ -42,16 +40,9 @@ const Login = ({ props }) => {
       if (response.ok) {
         const result = await response.json();
         toast.success(result.message);
+        localStorage.setItem("user_id",result.user_id);
         localStorage.setItem('token', result.token);
         setIsLogin(true);
-        setProfile({
-          user_id:result.user_id,
-          username: result.username,
-          email: result.email,
-          dp: result.dp,
-          role: result.role,
-          cid: result.cid,
-        });
       } else {
         const error = await response.json();
         toast.error(`Login failed: ${error.message}`);

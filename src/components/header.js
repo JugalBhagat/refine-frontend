@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
-import myImage from '../img/my_img.jpg';
 import clogo from '../img/brand1.png';
 import useProfileStore from '../zustand_store/profileStore';
 import { toast } from 'react-toastify';
@@ -35,23 +34,71 @@ const customStyles = {
     },
 };
 
-
 Modal.setAppElement('#root');
 
-function Header({isLogin,setIsLogin}) {
+function Header({ isLogin, setIsLogin }) {
     const [modalIsOpen, setIsOpen] = React.useState(false);
-    const profile = useProfileStore((state) => state.profile);
     const profileStore = useProfileStore();
+    const profile = useProfileStore((state) => state.profile);
 
     const [formData, setFormData] = useState({
-        user_id:profile.user_id,
-        username: profile.username,
-        role: profile.role,
-        email: profile.email,
-        dp:profile.dp
+        user_id: '',
+        username: '',
+        role: '',
+        email: '',
+        dp: '',
+        created_at:'',
     });
 
     useEffect(() => {
+        console.log("Fetching user data...");
+        const user_id = localStorage.getItem('user_id');
+        const token = localStorage.getItem('token');
+
+        if (user_id && token) {
+            fetch(`http://localhost:8000/users/fetchuser/${user_id}`, {
+                headers: {
+                    Authorization: token
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("User data fetched successfully:", data);
+                    profileStore.setProfile(data);
+                    setFormData({
+                        user_id: data.user_id,
+                        username: data.username,
+                        role: data.role,
+                        email: data.email,
+                        dp: data.dp,
+                        created_at:data.created_at,
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching user data:", error);
+                    toast.error("Error fetching user data");
+                });
+        } else {
+            console.log("No user_id or token found in localStorage");
+        }
+    // eslint-disable-next-line
+    }, [isLogin]);
+
+    useEffect(() => {
+        setFormData({
+            user_id: profile.user_id,
+            username: profile.username,
+            role: profile.role,
+            email: profile.email,
+            dp: profile.dp,
+            created_at:profile.created_at,
+        });
+
         if (profile.dp && profile.dp.type === 'Buffer') {
             const blob = new Blob([new Uint8Array(profile.dp.data)], { type: 'image/jpeg' });
             const reader = new FileReader();
@@ -60,13 +107,7 @@ function Header({isLogin,setIsLogin}) {
             };
             reader.readAsDataURL(blob);
         }
-        else{
-            setIsLogin(false);
-            profileStore.clearProfile();
-            localStorage.removeItem("token");
-            setIsLogin(false);
-        }
-    }, [profile.dp,isLogin]);
+    }, [profile]);
 
     function openModal() {
         setIsOpen(true);
@@ -77,34 +118,36 @@ function Header({isLogin,setIsLogin}) {
     }
 
     function handleInputChange(e) {
-        const { name, value } = e.target; // Destructure name and value from the event target
+        const { name, value } = e.target;
         setFormData(prevFormData => ({
             ...prevFormData,
-            [name]: value // Update the state dynamically based on input name
+            [name]: value
         }));
     }
 
     const handleApply = async () => {
         console.log(formData);
-    
-        // Create a FormData object and append the fields
+
         const formDataToSend = new FormData();
         formDataToSend.append("user_id", formData.user_id);
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
         formDataToSend.append("role", formData.role);
-    
+
         try {
             const response = await fetch("http://localhost:8000/users/updateuser", {
-                method: "POST",
-                body: formDataToSend, // Send the FormData object
+                method: "PUT",
+                body: formDataToSend,
+                headers: {
+                    Authorization: localStorage.getItem('token')
+                }
             });
-    
+
             if (!response.ok) {
                 toast.error("Network response was not ok");
                 throw new Error("Network response was not ok");
             }
-    
+
             const result = await response.json();
             console.log("Success:", result);
             toast.success("Data updated successfully");
@@ -113,10 +156,10 @@ function Header({isLogin,setIsLogin}) {
             toast.error("Error:", error);
         }
     };
-    
 
     const handleLogOut = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("user_id");
         setIsLogin(false);
         profileStore.clearProfile();
     };
@@ -132,10 +175,9 @@ function Header({isLogin,setIsLogin}) {
                         </button>
                         <div className="collapse navbar-collapse ends-2" id="navbarSupportedContent">
                             <form className="d-flex mx-5">
-                                {/* <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" /> */}
+                                <h4>hello</h4>
                             </form>
                             <form className="d-flex align-items-center">
-                                {/* <img width="40" height="40" src="https://img.icons8.com/carbon-copy/100/bell--v1.png" alt="bell--v1" /> */}
                                 <img className='logo mx-3' style={{ cursor: "pointer" }} src={formData.dp} alt="Description of the Logo" onClick={openModal} />
                             </form>
                         </div>
@@ -146,7 +188,7 @@ function Header({isLogin,setIsLogin}) {
                 isOpen={modalIsOpen}
                 onRequestClose={closeModal}
                 style={customStyles}
-                contentLabel="Example Modal"
+                contentLabel="Account Settings Modal"
             >
                 <div className="account-settings">
                     <div className="header">
@@ -154,7 +196,7 @@ function Header({isLogin,setIsLogin}) {
                         <button className="close-btn" onClick={closeModal}>×</button>
                     </div>
                     <div className="profile">
-                        <img src={formData.dp} alt="Profile" className="profile-img " />
+                        <img src={formData.dp} alt="Profile" className="profile-img" />
                         <h3>{formData.username}</h3>
                     </div>
                     <div className="section">
@@ -187,4 +229,4 @@ function Header({isLogin,setIsLogin}) {
     )
 }
 
-export default Header
+export default Header;

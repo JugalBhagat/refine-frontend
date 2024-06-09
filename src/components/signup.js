@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import useProfileStore from '../zustand_store/profileStore';
 
 const Signup = ({ props }) => {
-  const {hasAcc,setHasAcc,setIsLogin} = props;
+  const { setHasAcc, setIsLogin } = props;
   const [submitted, setSubmitted] = useState(false);
   const [companies, setCountries] = useState([]);
-  const setProfile = useProfileStore((state) => state.setProfile); 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -54,28 +52,13 @@ const Signup = ({ props }) => {
           const result = await response.json();
           toast.success('Signup successfully!');
           localStorage.setItem('token', result.token);
-          setProfile({
-            user_id:result.user_id,
-            username: result.username,
-            email: result.email,
-            dp: result.dp,
-            role: result.role,
-            cid: result.cid,
-          });
+          localStorage.setItem("user_id", result.user_id);
           console.log(result);
           setHasAcc(true);
           setIsLogin(true);
         } else {
           console.error('Error signing up:', response.statusText);
           toast.error('Error signing up:', response.statusText);
-          setFormData({
-            name: '',
-            email: '',
-            password: '',
-            role: '',
-            cid: '',
-            dp: null,
-          });
           // Handle signup error (e.g., show an error message)
         }
       } catch (error) {

@@ -8,6 +8,7 @@ const useProfileStore = create((set) => ({
     dp: '',
     role: '',
     cid: null,
+    created_at:''
   },
   setProfile: (profile) => set({ profile }),
   clearProfile: () => set({
@@ -18,6 +19,7 @@ const useProfileStore = create((set) => ({
       dp: '',
       role: '',
       cid: null,
+      created_at:''
     },
   }), 
   getProfile: () => {

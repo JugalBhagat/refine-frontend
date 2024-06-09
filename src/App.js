@@ -27,7 +27,7 @@ function App() {
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
-  }, [isLogin])
+  }, [isLogin,setIsLogin])
   
 
   return (
