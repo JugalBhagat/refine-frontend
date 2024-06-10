@@ -35,6 +35,8 @@
     "react-simple-maps": "^3.0.0",
     "react-toastify": "^10.0.5",
     "react-tooltip": "^5.26.4",
+    "sweetalert": "^2.1.2",
+    "sweetalert2": "^11.11.1",
     "web-vitals": "^2.1.4",
     "zustand": "^4.5.2"
   },

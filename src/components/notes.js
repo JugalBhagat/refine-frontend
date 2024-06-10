@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Table from 'react-bootstrap/Table';
 import { Pagination } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -6,75 +6,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { BiPencil, BiTrash, BiSortDown, BiSortUp } from 'react-icons/bi';
 import { BsEye } from 'react-icons/bs';
 import Modal from 'react-modal';
-
-
-const ITEMS_PER_PAGE = 5; // Number of items per page
-
-const jsonData = [
-    {
-        "nid": 1,
-        "note": "This is a note by Marcus Krajcik Sr.",
-        "title": "Industrial Engineering Notes",
-        "created_time": "2024-06-01T10:15:30Z",
-        "created_by": "Marcus Krajcik Sr."
-    },
-    {
-        "nid": 2,
-        "note": "Research on new materials.",
-        "title": "Material Research",
-        "created_time": "2024-06-02T11:20:25Z",
-        "created_by": "Jerome Gutmann IV"
-    },
-    {
-        "nid": 3,
-        "note": "Customer success strategies.",
-        "title": "Customer Success",
-        "created_time": "2024-06-03T09:10:15Z",
-        "created_by": "Oscar Witting"
-    },
-    {
-        "nid": 4,
-        "note": "Lead developer responsibilities.",
-        "title": "Development Notes",
-        "created_time": "2024-06-04T08:50:45Z",
-        "created_by": "Dorothy Reilly"
-    },
-    {
-        "nid": 5,
-        "note": "Marketing strategies for Q3.",
-        "title": "Marketing Strategies",
-        "created_time": "2024-06-05T14:25:30Z",
-        "created_by": "Edna Flatley"
-    },
-    {
-        "nid": 6,
-        "note": "Financial analysis report.",
-        "title": "Financial Analysis",
-        "created_time": "2024-06-06T12:35:20Z",
-        "created_by": "Johnathan Morar"
-    },
-    {
-        "nid": 7,
-        "note": "Research department updates.",
-        "title": "Research Updates",
-        "created_time": "2024-06-07T10:15:30Z",
-        "created_by": "Dr. Orville Grady"
-    },
-    {
-        "nid": 8,
-        "note": "Operational improvements.",
-        "title": "Operations",
-        "created_time": "2024-06-08T15:45:10Z",
-        "created_by": "Frances Hilll"
-    },
-    {
-        "nid": 9,
-        "note": "Sales strategies for Q4.",
-        "title": "Sales Strategies",
-        "created_time": "2024-06-09T16:20:00Z",
-        "created_by": "Jared Hand"
-    }
-];
+import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 const customStyles = {
     content: {
@@ -97,12 +30,15 @@ const customStyles = {
     },
 };
 
+const ITEMS_PER_PAGE = 5; // Number of items per page
+
 function Notes() {
+
     const [sortConfig, setSortConfig] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    const [modalIsOpen_edit, setIsOpen_edit] = React.useState(false);
-    const [modalIsOpen_add, setIsOpen_add] = React.useState(false);
+    const [modalIsOpen_edit, setIsOpen_edit] = useState(false);
+    const [modalIsOpen_add, setIsOpen_add] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isViewMode, setIsViewMode] = useState(false);
     const [formData, setFormData] = useState({
@@ -111,7 +47,179 @@ function Notes() {
         note: '',
         created_by: '',
         created_time: '',
-      });
+    });
+
+    const [notesData, setNotesData] = useState([]);
+
+    useEffect(() => {
+        fetchNotesData();
+    }, []); // No dependencies here
+
+    useEffect(() => {
+        console.log(notesData);
+        // console.log(selectedItem.nid);
+    }, [notesData]);
+
+
+    const fetchNotesData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch("http://localhost:8000/notes/fetchall", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const formattedData = data.data.map(note => ({
+                    nid: note.nid,
+                    note: note.note_desc,
+                    title: note.note_title,
+                    created_time: note.created_at,
+                    created_by: note.created_by,
+                }));
+                setNotesData(formattedData); // This will trigger the useEffect hook to run again
+                // console.log(notesData);
+            } else {
+                console.error('Failed to fetch notes:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching notes:', error);
+        }
+    };
+
+    const handleOnSubmit_edit = async(e) => {
+        // console.log('Edited Values:', selectedItem);
+        e.preventDefault();
+        // console.log(selectedItem.title);
+        // console.log(selectedItem.note);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:8000/notes/updatenote`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': token
+                },
+                body: new URLSearchParams({
+                    title: selectedItem.title,
+                    desc: selectedItem.note,
+                    nid: selectedItem.nid
+                })
+            });
+            if (response.ok) {
+                toast.success('Note Updated successfully');
+                fetchNotesData(); // Refresh the notes list
+                setIsOpen_edit(false);
+            } else {
+                console.error('Failed to Update note:', response.statusText);
+                toast.error('Failed to Update note');
+            }
+        } catch (error) {
+            console.error('Error Editing note:', error);
+            toast.error('Error Editing note');
+        }
+    };
+
+    const handleOnSubmit_add = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const uid = localStorage.getItem('user_id');
+            const response = await fetch(`http://localhost:8000/notes/addnote`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token
+                },
+                body: new URLSearchParams({
+                    title: formData.title,
+                    desc: formData.note,
+                    uid: uid
+                })
+            });
+            if (response.ok) {
+                toast.success('Note added successfully');
+                setFormData({ title: '', note: '' }); // Reset form data
+                fetchNotesData(); // Refresh the notes list
+                setIsOpen_add(false);
+            } else {
+                console.error('Failed to add note:', response.statusText);
+                toast.error('Failed to add note');
+            }
+        } catch (error) {
+            console.error('Error adding note:', error);
+            toast.error('Error adding note');
+        }
+    };
+
+    const [delId, setDelId] = useState(null);
+    const handleDelNote = async() => {
+        console.log(delId);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:8000/notes/deletenote/${delId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': token
+                }
+            });
+            if (response.ok) {
+                toast.success('Note deleted successfully');
+                setDelId(null); // Reset delId after deletion
+                fetchNotesData(); // Refresh the notes list
+                setCurrentPage(1);
+            } else {
+                console.error('Failed to delete note:', response.statusText);
+                toast.error('Failed to delete note');
+            }
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            toast.error('Error deleting note');
+        }
+    };
+    const confirmDelete = (item, e) => {
+        // Display confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this note!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setDelId(item.nid); // Set delId only if the user confirms
+            } else {
+                // Reset delId if the user cancels
+                setDelId(null);
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (delId !== null) {
+            handleDelNote();
+        }
+        // eslint-disable-next-line
+    }, [delId]);
+
+    const handleChange_add = (e) => {
+        const { id, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [id]: value,
+        }));
+    };
+
+    const openModal_add = (item, mode) => {
+        setIsOpen_add(true);
+    };
+
+    const closeModal_add = () => {
+        setIsOpen_add(false);
+    };
 
     const openModal_edit = (item, mode) => {
         setSelectedItem(item);
@@ -123,14 +231,6 @@ function Notes() {
         setIsOpen_edit(false);
         setSelectedItem(null);
         setIsViewMode(false);
-    };
-    
-    const openModal_add = (item, mode) => {
-        setIsOpen_add(true);
-    };
-
-    const closeModal_add = () => {
-        setIsOpen_add(false);
     };
 
     const handleSort = (key) => {
@@ -155,7 +255,7 @@ function Notes() {
     };
 
     const sortedData = () => {
-        let sortableData = [...jsonData];
+        let sortableData = [...notesData];
         if (sortConfig !== null) {
             sortableData.sort((a, b) => {
                 if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -181,23 +281,7 @@ function Notes() {
         }
     };
 
-    const handleOnSubmit_edit = (e) => {
-        e.preventDefault();
-        console.log('Edited Values:', selectedItem);
-    };
 
-    const handleChange_add = (e) => {
-        const { id, value } = e.target;
-        setFormData((prevData) => ({
-          ...prevData,
-          [id]: value,
-        }));
-      };
-
-    const handleOnSubmit_add = (e) => {
-        e.preventDefault();
-        console.log('Added Values:', formData);
-    }
 
 
     Modal.setAppElement('#root');
@@ -267,7 +351,7 @@ function Notes() {
                                     <td>
                                         <button className="btn btn-link p-0" onClick={() => openModal_edit(item, 'view')}><BsEye /></button>
                                         <button className="btn btn-link p-0 mx-2" onClick={() => openModal_edit(item, 'edit')}><BiPencil /></button>
-                                        <button className="btn btn-link p-0 text-danger"><BiTrash /></button>
+                                        <button className="btn btn-link p-0 text-danger" onClick={(e) => confirmDelete(item, e)}><BiTrash /></button>
                                     </td>
                                 </tr>
                             ))}
@@ -308,7 +392,7 @@ function Notes() {
                     </div>
                     <div className="form-group">
                         <label htmlFor="created_by">Created By</label>
-                        <input id="created_by" className="form-control" type="text" value={selectedItem?.created_by || ''} onChange={(e) => setSelectedItem({ ...selectedItem, created_by: e.target.value })} readOnly={isViewMode} />
+                        <input id="created_by" className="form-control" type="text" value={selectedItem?.created_by || ''} onChange={(e) => setSelectedItem({ ...selectedItem, created_by: e.target.value })} readOnly />
                     </div>
                     <div className="form-group">
                         <label htmlFor="created_time">Created Time</label>
@@ -336,15 +420,6 @@ function Notes() {
                     <div className="form-group">
                         <label htmlFor="note">Note</label>
                         <input id="note" className="form-control" type="text" placeholder="Enter note" value={formData.note} onChange={handleChange_add} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="created_by">Created By</label>
-                        <input id="created_by" className="form-control" type="text" placeholder="Enter creator's name" value={formData.created_by} onChange={handleChange_add} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="created_time">Created Time</label>
-                        <input id="created_time" className="form-control" type="text" placeholder="Enter created time" value={formData.created_time} onChange={handleChange_add}
-                        />
                     </div>
                     <button type="button" className="mt-3 btn btn-primary" onClick={handleOnSubmit_add}>
                         Add Note

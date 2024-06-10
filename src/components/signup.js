@@ -173,9 +173,9 @@ const Signup = ({ props }) => {
               style={{ maxHeight: '100px', overflowY: 'auto' }}
             >
               <option value="">Select your company</option>
-              {companies.map((country) => (
-                <option key={country} value={country}>
-                  {country}
+              {companies.map((company) => (
+                <option key={company.cid} value={company.cid}>
+                  {company.cname}
                 </option>
               ))}
             </Form.Control>
@@ -185,6 +185,7 @@ const Signup = ({ props }) => {
               </Form.Control.Feedback>
             )}
           </Form.Group>
+
 
           <Form.Group className="mb-3 text-left" controlId="formProfilePicture">
             <Form.Label>Profile Picture</Form.Label>

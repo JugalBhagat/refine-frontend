@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CompanyCard from './companyCard'
 import Brand2 from '../img/brand2.png';
 import Brand3 from '../img/brand3.png';
@@ -6,6 +6,7 @@ import Brand4 from '../img/brand4.png';
 import Brand5 from '../img/brand5.png';
 import Brand6 from '../img/brand6.png';
 import Modal from 'react-modal';
+import { toast } from 'react-toastify';
 
 const customStyles = {
     content: {
@@ -72,18 +73,104 @@ const companiesData = [
 ];
 
 
-
 function Companies() {
     const [searchTerm, setSearchTerm] = useState('');
     const [modalIsOpen_add, setIsOpen_add] = React.useState(false);
+    const [countries, setCountries] = useState([]);
     const [formData, setFormData] = useState({
         logo: '',
         companyName: '',
-        country:'',
+        country: '',
         revenue: '',
         type: '',
         size: ''
     });
+
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/fetchcountry');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data);
+                if (data && data.message && data.countries) {
+                    setCountries(data.countries);
+                } else {
+                    throw new Error('Invalid data structure in response');
+                }
+            } catch (error) {
+                console.error('Error fetching countries:', error);
+            }
+        };
+        fetchCountries();
+    }, []);
+
+
+
+    const handleOnSubmit_add = () => {
+        console.log('Form Data:', formData);
+
+        const token = localStorage.getItem('token');
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('file', formData.logo);
+        formDataToSend.append('cname', formData.companyName);
+        formDataToSend.append('country', formData.country);
+        formDataToSend.append('revenue', formData.revenue);
+        formDataToSend.append('type', formData.type);
+        formDataToSend.append('size', formData.size);
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Authorization': token
+            },
+            body: formDataToSend
+        };
+
+        fetch('http://localhost:8000/companies/add', requestOptions)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                if (data.message === "Company Added successful") {
+                    toast.success("Company added successfully!");
+
+                    setFormData({
+                        logo: '',
+                        companyName: '',
+                        country: '',
+                        revenue: '',
+                        type: '',
+                        size: ''
+                    });
+                    setIsOpen_add(false);
+                } else {
+                    toast.error(data.message || "Error adding company");
+                    console.error('Error:', data.message);
+                }
+            })
+            .catch(error => {
+                toast.error("Network error, please try again");
+                console.error('Error:', error);
+            });
+    };
+
+    const handleFileChange = (e) => {
+        setFormData({
+            ...formData,
+            logo: e.target.files[0]
+        });
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setFormData({
+            ...formData,
+            [id]: value
+        });
+    };
 
     const openModal_add = () => {
         setIsOpen_add(true);
@@ -92,41 +179,6 @@ function Companies() {
     const closeModal_add = () => {
         setIsOpen_add(false);
     };
-
-    const handleChange_add = (e) => {
-        const { id, value, files } = e.target;
-        if (id === 'logo' && files.length > 0) {
-            const file = files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData((prevData) => ({
-                    ...prevData,
-                    logo: reader.result,
-                }));
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setFormData((prevData) => ({
-                ...prevData,
-                [id]: value,
-            }));
-        }
-        setIsOpen_add(false);
-    };
-
-    const handleOnSubmit_add = () => {
-        console.log('Form Data:', formData);
-        setFormData({
-            logo: '',
-            companyName: '',
-            country:'',
-            revenue: '',
-            type: '',
-            size: ''
-        });
-
-    };
-
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
@@ -177,27 +229,33 @@ function Companies() {
                 <form className="mt-4">
                     <div className="form-group">
                         <label htmlFor="logo">Logo</label>
-                        <input id="logo" className="form-control" type="file" accept="image/*" onChange={handleChange_add} />
+                        <input id="logo" className="form-control" type="file" accept="image/*"
+                            onChange={handleFileChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="companyName">Company Name</label>
-                        <input id="companyName" className="form-control" type="text" placeholder="Enter company name" value={formData.companyName} onChange={handleChange_add} />
+                        <input id="companyName" className="form-control" type="text" placeholder="Enter company name" value={formData.companyName} onChange={handleChange} />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="companyCountry">Country</label>
-                        <input id="companyCountry" className="form-control" type="text" placeholder="Enter Country" value={formData.country} onChange={handleChange_add} />
+                        <label htmlFor="country">Country</label>
+                        <select id="country" className="form-control" value={formData.country} onChange={handleChange}>
+                            <option value="">Select Country</option>
+                            {countries.map((country, index) => (
+                                <option key={index} value={country}>{country}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="form-group">
                         <label htmlFor="revenue">Revenue</label>
-                        <input id="revenue" className="form-control" type="text" placeholder="Enter revenue" value={formData.revenue} onChange={handleChange_add} />
+                        <input id="revenue" className="form-control" type="text" placeholder="Enter revenue" value={formData.revenue} onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="type">Type</label>
-                        <input id="type" className="form-control" type="text" placeholder="Enter type" value={formData.type} onChange={handleChange_add} />
+                        <input id="type" className="form-control" type="text" placeholder="Enter type" value={formData.type} onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="size">Size</label>
-                        <input id="size" className="form-control" type="text" placeholder="Enter size" value={formData.size} onChange={handleChange_add} />
+                        <input id="size" className="form-control" type="text" placeholder="Enter size" value={formData.size} onChange={handleChange} />
                     </div>
                     <button type="button" className="mt-3 btn btn-primary" onClick={handleOnSubmit_add}>
                         Add Company

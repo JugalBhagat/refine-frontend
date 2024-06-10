@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-
+import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -9,80 +9,6 @@ import Modal from 'react-modal';
 
 const localizer = momentLocalizer(moment)
 // const localizer = globalizeLocalizer(globalize)
-
-const myEventsList = [
-    {
-        title: 'Annual Meeting',
-        username: "Lokesh",
-        start: new Date(2024, 5, 3, 12, 0), // June 3, 2024, 12:00 PM
-        end: new Date(2024, 5, 4, 13, 0),   // June 4, 2024, 1:00 PM
-    },
-    {
-        title: 'Quarterly Review',
-        username: "Alay",
-        start: new Date(2024, 5, 5, 10, 0), // June 5, 2024, 10:00 AM
-        end: new Date(2024, 5, 5, 11, 30),  // June 5, 2024, 11:30 AM
-    },
-    {
-        title: 'Project Deadline',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 8, 9, 0),  // June 8, 2024, 9:00 AM
-        end: new Date(2024, 5, 8, 10, 0),   // June 8, 2024, 10:00 AM
-    },
-    {
-        title: 'Team Building Event',
-        username: "Vishlya",
-        start: new Date(2024, 5, 11, 14, 0), // June 11, 2024, 2:00 PM
-        end: new Date(2024, 5, 11, 17, 0),   // June 11, 2024, 5:00 PM
-    },
-    {
-        title: 'Client Meeting',
-        username: "Hardeep",
-        start: new Date(2024, 5, 15, 9, 30), // June 15, 2024, 9:30 AM
-        end: new Date(2024, 5, 15, 11, 0),   // June 15, 2024, 11:00 AM
-    },
-    {
-        title: 'Department Meeting',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 17, 10, 0), // June 17, 2024, 10:00 AM
-        end: new Date(2024, 5, 17, 12, 0),   // June 17, 2024, 12:00 PM
-    }, {
-        title: 'Marketing Strategy',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 20, 14, 0), // June 20, 2024, 2:00 PM
-        end: new Date(2024, 5, 20, 15, 30),  // June 20, 2024, 3:30 PM
-    },
-    {
-        title: 'Budget Review',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 22, 10, 0), // June 22, 2024, 10:00 AM
-        end: new Date(2024, 5, 22, 11, 0),   // June 22, 2024, 11:00 AM
-    },
-    {
-        title: 'Product Launch',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 25, 9, 0),  // June 25, 2024, 9:00 AM
-        end: new Date(2024, 5, 25, 12, 0),   // June 25, 2024, 12:00 PM
-    },
-    {
-        title: 'Sales Training',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 27, 13, 0), // June 27, 2024, 1:00 PM
-        end: new Date(2024, 5, 27, 16, 0),   // June 27, 2024, 4:00 PM
-    },
-    {
-        title: 'Customer Feedback',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 29, 11, 0), // June 29, 2024, 11:00 AM
-        end: new Date(2024, 5, 29, 12, 30),  // June 29, 2024, 12:30 PM
-    },
-    {
-        title: 'Investor Meeting',
-        username: "Abhijeet",
-        start: new Date(2024, 5, 30, 15, 0), // June 30, 2024, 3:00 PM
-        end: new Date(2024, 5, 30, 17, 0),   // June 30, 2024, 5:00 PM
-    },
-];
 
 const customStyles = {
     content: {
@@ -107,13 +33,106 @@ const customStyles = {
 
 function Notes() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
-
+    const [events, setEvents] = useState([]);
+    const [fetchItMan , setFetchItMan] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
-        username: '',
-        start: null, 
-        end: null 
+        start: null,
+        end: null
     });
+
+    useEffect(() => {
+        fetchEvents();
+    }, [fetchItMan]);
+
+    const fetchEvents = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Authorization': token
+            };
+            const response = await fetch('http://localhost:8000/events/fetchallevents', {
+                method: 'GET',
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch events');
+            }
+            const data = await response.json();
+
+            // Transform the data into the desired format
+            const transformedEvents = data.data.map(event => {
+                // Splitting start_time and end_time
+                const startTimeParts = event.start_time.split(':');
+                const endTimeParts = event.end_time.split(':');
+
+                // Constructing Date objects with parsed time components
+                const startDate = new Date(event.date);
+                startDate.setHours(parseInt(startTimeParts[0], 10));
+                startDate.setMinutes(parseInt(startTimeParts[1], 10));
+
+                const endDate = new Date(event.date);
+                endDate.setHours(parseInt(endTimeParts[0], 10));
+                endDate.setMinutes(parseInt(endTimeParts[1], 10));
+
+                // Returning the transformed event object
+                return {
+                    title: event.event_title,
+                    username: event.username,
+                    start: startDate,
+                    end: endDate
+                };
+            });
+
+
+            setEvents(transformedEvents);
+        } catch (error) {
+            console.error('Error fetching events:', error.message);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const uid = localStorage.getItem('user_id');
+
+        const { title, start, end } = formData;
+        console.log(start.slice(0, 10));
+        console.log(start.slice(12,) + ":00");
+        console.log(end.slice(12,) + ":00");
+
+        const formData2 = new FormData();
+        formData2.append('event_title', title);
+        formData2.append('uid', uid);
+        formData2.append('date', start.slice(0, 10));
+        formData2.append('start_time', start.slice(12,) + ":00");
+        formData2.append('end_time', end.slice(12,) + ":00");
+
+        try {
+            const response = await fetch('http://localhost:8000/events/addevent', {
+                method: 'POST',
+                headers: {
+                    'Authorization': token,
+                },
+                body: formData2
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add event');
+            }
+            const data = await response.json();
+
+            console.log('Event added successfully:', data);
+            fetchEvents();
+            toast.success('Event added successfully');
+            setFetchItMan(true);
+            closeModal();
+        } catch (error) {
+            console.error('Error adding event:', error.message);
+            toast.error('Failed to add event'); // Show error toast
+        }
+    };
 
     function openModal() {
         setModalIsOpen(true);
@@ -131,12 +150,6 @@ function Notes() {
         }));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Add your submit logic here
-        console.log(formData);
-        closeModal();
-    };
 
     return (
         <div className="div-body">
@@ -150,7 +163,7 @@ function Notes() {
                     <div className="activity-container_cal">
                         <h3 className="activity-header_cal">Upcoming events</h3>
                         <ul className="activity-list_cal">
-                            {myEventsList.slice(0, 3).map((activity, index) => (
+                            {events.slice(0, 3).map((activity, index) => (
                                 <li key={index} className="activity-item_cal text-left">
 
                                     <hr />
@@ -190,7 +203,7 @@ function Notes() {
                 <div className="col-md-9">
                     <Calendar
                         localizer={localizer}
-                        events={myEventsList}
+                        events={events}
                         startAccessor="start"
                         endAccessor="end"
                         style={{ height: 500 }}
@@ -211,19 +224,15 @@ function Notes() {
                 <form className="mt-4" onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="title">Title</label>
-                        <input id="title" name="title" className="form-control" type="text" placeholder="Enter event title"  onChange={handleChange} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="username">Username</label>
-                        <input id="username" name="username" className="form-control" type="text" placeholder="Enter your username"  onChange={handleChange} />
+                        <input id="title" name="title" className="form-control" type="text" placeholder="Enter event title" onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="start">Start Time</label>
-                        <input id="start" name="start" className="form-control" type="datetime-local"  onChange={handleChange} />
+                        <input id="start" name="start" className="form-control" type="datetime-local" onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="end">End Time</label>
-                        <input id="end" name="end" className="form-control" type="datetime-local"  onChange={handleChange}/>
+                        <input id="end" name="end" className="form-control" type="datetime-local" onChange={handleChange} />
                     </div>
                     <button type="submit" className="mt-3 btn btn-primary">Add Event</button>
                 </form>
