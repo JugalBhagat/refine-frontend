@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import CompanyCard from './companyCard'
-import Brand2 from '../img/brand2.png';
-import Brand3 from '../img/brand3.png';
-import Brand4 from '../img/brand4.png';
-import Brand5 from '../img/brand5.png';
-import Brand6 from '../img/brand6.png';
+import React, { useState, useEffect } from 'react';
+import CompanyCard from './companyCard';
 import Modal from 'react-modal';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const customStyles = {
     content: {
@@ -24,61 +20,20 @@ const customStyles = {
         left: '0',
         right: '0',
         bottom: '0',
-        backgroundColor: 'rgba(0, 0, 0, 0.75)', // Backdrop to disable other areas
-        zIndex: 1049, // Just below the modal
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        zIndex: 1049,
     },
 };
-
-const companiesData = [
-    {
-        logo: Brand2,
-        companyName: "Chanel",
-        revenue: "610,116.00",
-        type: "B2C",
-        size: "Medium",
-        country: "USA"
-    },
-    {
-        logo: Brand3,
-        companyName: "Louis vuiton",
-        revenue: "820,234.00",
-        type: "B2B",
-        size: "Large",
-        country: "Canada"
-    },
-    {
-        logo: Brand4,
-        companyName: "Versace",
-        revenue: "1,520,390.00",
-        type: "B2B",
-        size: "Large",
-        country: "UK"
-    },
-    {
-        logo: Brand5,
-        companyName: "Cocacola",
-        revenue: "420,670.00",
-        type: "B2C",
-        size: "Small",
-        country: "Australia"
-    },
-    {
-        logo: Brand6,
-        companyName: "Rolex",
-        revenue: "920,000.00",
-        type: "B2B",
-        size: "Medium",
-        country: "Germany"
-    }
-];
-
 
 function Companies() {
     const [searchTerm, setSearchTerm] = useState('');
     const [modalIsOpen_add, setIsOpen_add] = React.useState(false);
     const [countries, setCountries] = useState([]);
+    const [companiesData, setCompaniesData] = useState([]);
+    const [reload, setReload] = useState(false);
     const [formData, setFormData] = useState({
-        logo: '',
+        cid:'',
+        logo: null,
         companyName: '',
         country: '',
         revenue: '',
@@ -94,7 +49,6 @@ function Companies() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log(data);
                 if (data && data.message && data.countries) {
                     setCountries(data.countries);
                 } else {
@@ -107,13 +61,44 @@ function Companies() {
         fetchCountries();
     }, []);
 
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:8000/companies/allcompanies', {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data);
 
+                if (data && data.message === 'All data fetched' && data.data) {
+                    const formattedData = data.data.map(company => ({
+                        cid:company.cid,
+                        logo: URL.createObjectURL(new Blob([new Uint8Array(company.logo.data)], { type: 'image/jpeg' })),
+                        companyName: company.cname,
+                        revenue: company.revenue,
+                        type: company.type,
+                        size: company.size,
+                        country: company.country
+                    }));
+                    setCompaniesData(formattedData);
+                } else {
+                    throw new Error('Invalid data structure in response');
+                }
+            } catch (error) {
+                console.error('Error fetching companies:', error);
+            }
+        };
+        fetchCompanies();
+    }, [modalIsOpen_add,reload]);
 
     const handleOnSubmit_add = () => {
-        console.log('Form Data:', formData);
-
         const token = localStorage.getItem('token');
-
         const formDataToSend = new FormData();
         formDataToSend.append('file', formData.logo);
         formDataToSend.append('cname', formData.companyName);
@@ -133,12 +118,10 @@ function Companies() {
         fetch('http://localhost:8000/companies/add', requestOptions)
             .then(response => response.json())
             .then(data => {
-                console.log('Response from server:', data);
                 if (data.message === "Company Added successful") {
                     toast.success("Company added successfully!");
-
                     setFormData({
-                        logo: '',
+                        logo: null,
                         companyName: '',
                         country: '',
                         revenue: '',
@@ -148,12 +131,10 @@ function Companies() {
                     setIsOpen_add(false);
                 } else {
                     toast.error(data.message || "Error adding company");
-                    console.error('Error:', data.message);
                 }
             })
             .catch(error => {
                 toast.error("Network error, please try again");
-                console.error('Error:', error);
             });
     };
 
@@ -190,6 +171,7 @@ function Companies() {
 
     return (
         <div className="div-body">
+            <ToastContainer />
             <div className="row justify-content-between mt-4">
                 <div className="col-md-3 mx-2 text-left">
                     <button className='btn btn-outline-primary' onClick={openModal_add}>+ Add new Company</button>
@@ -212,7 +194,7 @@ function Companies() {
                 <div className="row">
                     {filteredCompanies.map((company, index) => (
                         <div className="col-md-6 col-lg-3 col-sm-12" key={index}>
-                            <CompanyCard company={company} />
+                            <CompanyCard company={company} setReload={setReload} />
                         </div>
                     ))}
                 </div>
@@ -229,8 +211,7 @@ function Companies() {
                 <form className="mt-4">
                     <div className="form-group">
                         <label htmlFor="logo">Logo</label>
-                        <input id="logo" className="form-control" type="file" accept="image/*"
-                            onChange={handleFileChange} />
+                        <input id="logo" className="form-control" type="file" accept="image/*" onChange={handleFileChange} />
                     </div>
                     <div className="form-group">
                         <label htmlFor="companyName">Company Name</label>
@@ -257,14 +238,11 @@ function Companies() {
                         <label htmlFor="size">Size</label>
                         <input id="size" className="form-control" type="text" placeholder="Enter size" value={formData.size} onChange={handleChange} />
                     </div>
-                    <button type="button" className="mt-3 btn btn-primary" onClick={handleOnSubmit_add}>
-                        Add Company
-                    </button>
+                    <button type="button" className="btn btn-primary" onClick={handleOnSubmit_add}>Add Company</button>
                 </form>
             </Modal>
-
         </div>
-    )
+    );
 }
 
-export default Companies
+export default Companies;
