@@ -111,89 +111,88 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8000/users/fetchall/', {
-                headers: {
-                    Authorization: token
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.total_result !== undefined) {
-                setUserCount(data.total_result);
-            } else {
-                console.error("Invalid response format for user count");
-            }
-        } catch (error) {
-            console.error("Error fetching user count:", error);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/users/fetchall/', {
+          headers: {
+            Authorization: token
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        if (data.total_result !== undefined) {
+          setUserCount(data.total_result);
+        } else {
+          console.error("Invalid response format for user count");
+        }
+      } catch (error) {
+        console.error("Error fetching user count:", error);
+      }
     };
 
     fetchUserData();
-}, []);
+  }, []);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchNoteCount = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8000/notes/totalnotes', {
-                headers: {
-                    Authorization: token
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.total !== undefined) {
-                setNoteCount(data.total);
-            } else {
-                console.error("Invalid response format for note count");
-            }
-        } catch (error) {
-            console.error("Error fetching note count:", error);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/notes/totalnotes', {
+          headers: {
+            Authorization: token
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        if (data.total !== undefined) {
+          setNoteCount(data.total);
+        } else {
+          console.error("Invalid response format for note count");
+        }
+      } catch (error) {
+        console.error("Error fetching note count:", error);
+      }
     };
 
     fetchNoteCount();
-}, []);
+  }, []);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchCompaniesCount = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8000/companies/totcompany', {
-                headers: {
-                    Authorization: token
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.total_company !== undefined) {
-                setCompaniesCount(data.total_company);
-            } else {
-                console.error("Invalid response format for company count");
-            }
-        } catch (error) {
-            console.error("Error fetching company count:", error);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/companies/totcompany', {
+          headers: {
+            Authorization: token
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        if (data.total_company !== undefined) {
+          setCompaniesCount(data.total_company);
+        } else {
+          console.error("Invalid response format for company count");
+        }
+      } catch (error) {
+        console.error("Error fetching company count:", error);
+      }
     };
 
     fetchCompaniesCount();
-}, []);
-
-
+  }, []);
 
 
 
   useEffect(() => {
     console.log(monArr);
     console.log(userIRate);
+    // eslint-disable-next-line
   }, [monArr])
 
 
@@ -284,8 +283,6 @@ useEffect(() => {
               <div className="row align-items-center">
                 <div className="col-md-12">
                   <Card.Title style={{ color: 'gray', fontSize: "15px" }}>Average Monthly User Increase</Card.Title>
-
-
                   <GaugeChart
                     id="gauge-chart"
                     nrOfLevels={30}
@@ -295,14 +292,10 @@ useEffect(() => {
                     arcPadding={0.03}
                   />
                   <div className="row mt-3">
-                    <div className="col-md-6"><div>Expected</div>
-                      <div style={{ fontSize: "18px", fontWeight: "bold" }}>
-                        ${"35%"}
-                      </div></div>
-                    <div className="col-md-6">
-                      <div>Realized</div>
-                      <div style={{ fontSize: "18px", fontWeight: "bold" }}>
-                        ${"50%"}
+                    <div className="col-md-12">
+                      <div>Average Monthly User Increase Rate:</div>
+                      <div style={{ fontSize: "18px", fontWeight: "bold", marginTop:"10px" }}>
+                        {userIRate}% (every month on average)
                       </div>
                     </div>
                   </div>
@@ -332,7 +325,7 @@ useEffect(() => {
                     <Card.Title style={{ color: 'gray', fontSize: "15px" }}>Notes</Card.Title>
                   </div>
                   <ul className="activity-list">
-                    {activities.slice(0, 7).map(activity => (
+                    {activities.map(activity => (
                       <li key={activity.id} className="activity-item">
                         {/* <img src={Graph3} alt="icon" className="activity-icon" /> */}
                         <div className="activity-details">
