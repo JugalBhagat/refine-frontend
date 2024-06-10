@@ -40,21 +40,19 @@ function Header({ isLogin, setIsLogin }) {
     const [modalIsOpen, setIsOpen] = React.useState(false);
     const profileStore = useProfileStore();
     const profile = useProfileStore((state) => state.profile);
-
     const [formData, setFormData] = useState({
         user_id: '',
         username: '',
         role: '',
         email: '',
         dp: '',
-        created_at:'',
+        created_at: '',
     });
 
     useEffect(() => {
         console.log("Fetching user data...");
         const user_id = localStorage.getItem('user_id');
         const token = localStorage.getItem('token');
-
         if (user_id && token) {
             fetch(`http://localhost:8000/users/fetchuser/${user_id}`, {
                 headers: {
@@ -76,7 +74,7 @@ function Header({ isLogin, setIsLogin }) {
                         role: data.role,
                         email: data.email,
                         dp: data.dp,
-                        created_at:data.created_at,
+                        created_at: data.created_at,
                     });
                 })
                 .catch(error => {
@@ -86,7 +84,7 @@ function Header({ isLogin, setIsLogin }) {
         } else {
             console.log("No user_id or token found in localStorage");
         }
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [isLogin]);
 
     useEffect(() => {
@@ -96,7 +94,7 @@ function Header({ isLogin, setIsLogin }) {
             role: profile.role,
             email: profile.email,
             dp: profile.dp,
-            created_at:profile.created_at,
+            created_at: profile.created_at,
         });
 
         if (profile.dp && profile.dp.type === 'Buffer') {
@@ -175,10 +173,12 @@ function Header({ isLogin, setIsLogin }) {
                         </button>
                         <div className="collapse navbar-collapse ends-2" id="navbarSupportedContent">
                             <form className="d-flex mx-5">
-                                <h4>hello</h4>
+                                {/* <h4>{formData.username}</h4> */}
                             </form>
                             <form className="d-flex align-items-center">
-                                <img className='logo mx-3' style={{ cursor: "pointer" }} src={formData.dp} alt="Description of the Logo" onClick={openModal} />
+                                <div class="circle-container-logo mx-4">
+                                    <img className='logo ' style={{ cursor: "pointer" }} src={formData.dp} alt="Description of the Logo" onClick={openModal} />
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -196,7 +196,9 @@ function Header({ isLogin, setIsLogin }) {
                         <button className="close-btn" onClick={closeModal}>×</button>
                     </div>
                     <div className="profile">
-                        <img src={formData.dp} alt="Profile" className="profile-img" />
+                        <div className="circle-container-profile-img mx-4">
+                            <img src={formData.dp} alt="Profile" className="profile-img" />
+                        </div>
                         <h3>{formData.username}</h3>
                     </div>
                     <div className="section">

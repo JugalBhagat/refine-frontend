@@ -155,7 +155,7 @@ function Notes() {
         <div className="div-body">
             <div className="row justify-content-between mt-4">
                 <div className="col-md-3 mx-3 text-left">
-                    <button className='btn btn-outline-primary' onClick={openModal}>+ Add Events</button>
+                    <button className='btn btn-primary' onClick={openModal}>+ Add Events</button>
                 </div>
             </div>
             <div className='row'>

@@ -87,6 +87,7 @@ function Companies() {
                         country: company.country
                     }));
                     setCompaniesData(formattedData);
+                    // console.log(formattedData);
                 } else {
                     throw new Error('Invalid data structure in response');
                 }
@@ -174,7 +175,7 @@ function Companies() {
             <ToastContainer />
             <div className="row justify-content-between mt-4">
                 <div className="col-md-3 mx-2 text-left">
-                    <button className='btn btn-outline-primary' onClick={openModal_add}>+ Add new Company</button>
+                    <button className='btn btn-primary' onClick={openModal_add}>+ Add new Company</button>
                 </div>
                 <div className="col-md-3">
                     <div className="input-group mb-3">

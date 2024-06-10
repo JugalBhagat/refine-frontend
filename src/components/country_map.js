@@ -1,40 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { VectorMap } from '@react-jvectormap/core';
 import { worldMill } from '@react-jvectormap/world';
 import ReactCountryFlag from "react-country-flag";
 
-const companies = [
-  { name: 'United States', code: 'US', count: 24, latLng: [37.0902, -95.7129] },
-  { name: 'Germany', code: 'DE', count: 18, latLng: [51.1657, 10.4515] },
-  { name: 'United Kingdom', code: 'GB', count: 6, latLng: [55.3781, -3.4360] },
-  { name: 'Canada', code: 'CA', count: 4, latLng: [56.1304, -106.3468] },
-  { name: 'Spain', code: 'ES', count: 3, latLng: [40.4637, -3.7492] },
-  { name: 'France', code: 'FR', count: 2, latLng: [46.6034, 1.8883] },
-  { name: 'India', code: 'IN', count: 2, latLng: [20.5937, 78.9629] },
-];
-
-
 const CountryMap = () => {
+  const [companies, setCompanies] = useState([]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/companies/fetchcountry', {
+          headers: {
+            'Authorization': token
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data && data.message === 'Fetch All Country and Company Data successfully' && data.data) {
+          const formattedData = data.data.map(country => ({
+            name: country.name,
+            code: country.code,
+            count: country.count,
+            latLng: JSON.parse(country.latLng),
+            companies: country.companies.split(',').map(company => company.trim())
+          }));
+          setCompanies(formattedData);
+          console.log("Formatted companies data:", formattedData);
+        } else {
+          throw new Error('Invalid data structure in response');
+        }
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated companies data:", companies);
+  }, [companies]);
 
   return (
     <>
-    <VectorMap map={worldMill} 
-      markers={companies}
-      backgroundColor='#D1D1D1'
-      markerStyle={{
-        initial:{
-          fill:"red"
-        },
-      }} />;
-      <div style={{ display: 'flex', flexWrap: 'wrap', marginTop: '10px',marginBottom:'20px' }}>
-        {companies.map((company, index) => (
-          <div key={index} style={{ display: 'flex', alignItems: 'center', margin: '5px', padding: '5px', border: '1px solid #ccc', borderRadius: '5px' }}>
-            <ReactCountryFlag countryCode={company.code} svg style={{ width: '1em', height: '1em', marginRight: '10px' }} />
-            <span>{company.name} {company.count}</span>
+      {companies.length === 0 ? (
+        <p>No companies data available</p>
+      ) : (
+        <>
+          <VectorMap
+            map={worldMill}
+            markers={companies.map(company => ({
+              name: company.name,
+              latLng: company.latLng
+            }))}
+            backgroundColor='#D1D1D1'
+            markerStyle={{
+              initial: {
+                fill: "red"
+              }
+            }}
+          />
+          <div style={{ display: 'flex', flexWrap: 'wrap', marginTop: '20px', marginBottom: '20px' }}>
+            {companies.map((company, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', margin: '5px', padding: '5px', border: '1px solid #ccc', borderRadius: '5px' }}>
+                <ReactCountryFlag countryCode={company.code} svg style={{ width: '1em', height: '1em', marginRight: '10px' }} />
+                <span>{company.name} : {company.count} </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div style={{marginBottom:'20px',color:'white'}}>this is space holder</div>
+        </>
+      )}
+      <div style={{ marginBottom: '20px', color: 'white' }}>this is space holder</div>
     </>
   );
 };

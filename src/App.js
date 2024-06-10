@@ -80,6 +80,7 @@ function App() {
                   <Route path='/users' element={<Users />} />
                   <Route path='/notes' element={<Notes />} />
                   <Route path='/companies' element={<Companies />} />
+                  <Route path='/login' element={<SignInUp />} />
                 </Routes>
               </div>
             </div>

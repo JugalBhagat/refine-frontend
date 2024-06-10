@@ -55,8 +55,8 @@ function CompanyCard({ company,setReload }) {
     return (
         <Card className='mt-4'>
             <Card.Body>
-                <div className="buttons text-end ">
-                    <img width="20" height="20" src="https://img.icons8.com/carbon-copy/100/filled-trash.png" alt="filled-trash" onClick={confirmDelete} />
+                <div className="text-end ">
+                    <img width="20" height="20" className='buttons' src="https://img.icons8.com/carbon-copy/100/filled-trash.png" alt="filled-trash" onClick={confirmDelete} />
                 </div>
                 <div className="justify-content-between align-items-center">
                     <img src={logo} height="50" alt="company logo" />

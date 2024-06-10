@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Table from 'react-bootstrap/Table';
 import { Pagination } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -6,84 +6,21 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { BiSortDown, BiSortUp } from 'react-icons/bi';
 import { BsEye } from 'react-icons/bs';
 import Modal from 'react-modal';
+import { toast } from 'react-toastify';
 
 
 const ITEMS_PER_PAGE = 5; // Number of items per page
 
-const jsonData = [
-    {
-        "id": 1,
-        "name": "Marcus Krajcik Sr.",
-        "email": "marcus-krajcik-sr.@liehn.net",
-        "company": "Lueilwitz - Kiehn",
-        "title": "Industrial Engineer",
-        "profilePicture": "https://randomuser.me/api/portraits/men/1.jpg"
-    },
-    {
-        "id": 2,
-        "name": "Jerome Gutmann IV",
-        "email": "jerome-reicv@-and-olson.net",
-        "company": "Rowe, Kassulke and Olson",
-        "title": "Research Scientist",
-        "profilePicture": "https://randomuser.me/api/portraits/men/2.jpg"
-    },
-    {
-        "id": 3,
-        "name": "Oscar Witting",
-        "email": "oscar-witting@morar-llc.io",
-        "company": "Morar LLC",
-        "title": "Customer Success Specialist",
-        "profilePicture": "https://randomuser.me/api/portraits/men/3.jpg"
-    },
-    {
-        "id": 4,
-        "name": "Dorothy Reilly",
-        "email": "dorothy-o'reilly@and-hoppe.co",
-        "company": "Runte, Schneider and Hoppe",
-        "title": "Lead Developer",
-        "profilePicture": "https://randomuser.me/api/portraits/women/4.jpg"
-    },
-    {
-        "id": 5,
-        "name": "Edna Flatley",
-        "email": "edna-flatley@upton-group.dev",
-        "company": "Upton Group",
-        "title": "Chief Marketing Officer",
-        "profilePicture": "https://randomuser.me/api/portraits/women/5.jpg"
-    },
-    {
-        "id": 6,
-        "name": "Johnathan Morar",
-        "email": "johnathan-morar@farrell-inc.co",
-        "company": "Farrell Inc",
-        "title": "Financial Analyst",
-        "profilePicture": "https://randomuser.me/api/portraits/men/6.jpg"
-    },
-    {
-        "id": 7,
-        "name": "Dr. Orville Grady",
-        "email": "dr.-orville-grady@abern-kubowski.io",
-        "company": "Abernathy - Jakubowski",
-        "title": "Head of Research",
-        "profilePicture": "https://randomuser.me/api/portraits/men/7.jpg"
-    },
-    {
-        "id": 8,
-        "name": "Frances Hilll",
-        "email": "frances-hilll@vandervort-blick-and-breitenberg.com",
-        "company": "Vandervort, Blick and Breitenberg",
-        "title": "Director of Operations",
-        "profilePicture": "https://randomuser.me/api/portraits/women/8.jpg"
-    },
-    {
-        "id": 9,
-        "name": "Jared Hand",
-        "email": "jared-hand@walter-inc.com",
-        "company": "Walter Inc",
-        "title": "Director of Sales",
-        "profilePicture": "https://randomuser.me/api/portraits/men/9.jpg"
-    }
-];
+// const jsonData = [
+//     {
+//         "id": 1,
+//         "name": "Marcus Krajcik Sr.",
+//         "email": "marcus-krajcik-sr.@liehn.net",
+//         "company": "Lueilwitz - Kiehn",
+//         "title": "Industrial Engineer",
+//         "profilePicture": "https://randomuser.me/api/portraits/men/1.jpg"
+//     }
+// ];
 
 
 const customStyles = {
@@ -114,6 +51,8 @@ function Users() {
     const [modalIsOpen_view, setIsOpen_view] = React.useState(false);
     const [modalIsOpen_add, setIsOpen_add] = React.useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [usersData, setUsersData] = useState([]);
+
     const [formDataAdd, setFormDataAdd] = useState({
         name: '',
         email: '',
@@ -121,6 +60,53 @@ function Users() {
         title: '',
         profilePicture: ''
     });
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:8000/users/fetchall', {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data && data.message === 'Fetch All Data successful' && data.data) {
+                    const formattedData = data.data.map(user => formatUserData(user));
+                    setUsersData(formattedData);
+                } else {
+                    throw new Error('Invalid data structure in response');
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                toast.error('Failed to fetch users');
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    useEffect(() => {
+        console.log(usersData); // Print usersData whenever it changes
+    }, [usersData]);
+
+    const formatUserData = (userData) => {
+        return {
+            id: userData.user_id,
+            name: userData.username,
+            email: userData.email,
+            company: userData.cname,
+            title: userData.role,
+            profilePicture: URL.createObjectURL(new Blob([new Uint8Array(userData.dp.data)], { type: 'image/jpeg' })),
+        };
+    };
+
 
     const openModal_view = (item) => {
         setSelectedItem(item);
@@ -198,7 +184,7 @@ function Users() {
     };
 
     const sortedData = () => {
-        let sortableData = [...jsonData];
+        let sortableData = [...usersData];
         if (sortConfig !== null) {
             sortableData.sort((a, b) => {
                 if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -236,7 +222,7 @@ function Users() {
         <div className="div-body">
             <div className="row justify-content-between mt-4">
                 <div className="col-md-3 mx-3 text-left">
-                    <button className='btn btn-outline-primary d-none' onClick={() => openModal_add()} disabled>+ Add User</button>
+                    <button className='btn btn-primary d-none' onClick={() => openModal_add()} disabled>+ Add User</button>
                 </div>
                 <div className="col-md-3">
                     <div className="input-group mb-3">
@@ -279,10 +265,12 @@ function Users() {
                         </thead>
                         <tbody>
                             {currentItems.map((item) => (
-                                <tr key={item.id}>
+                                <tr key={item.id} className='align-items-center'>
                                     <td>
                                         {item.profilePicture && (
-                                            <img src={item.profilePicture} className='tbl-user-img' alt="Profile" />
+                                            <div className="circle-container-tbluser-img">
+                                                <img src={item.profilePicture} className='tbl-user-img' alt="Profile" />
+                                            </div>
                                         )}
                                     </td>
                                     <td>{item.id}</td>
@@ -320,15 +308,18 @@ function Users() {
                 <h3 className="my-3 text-center">User Details</h3>
                 <button className="close-btn float-right" onClick={closeModal_view}>×</button>
                 <form className="mt-4">
-                    <div className="form-group text-center">
-                        {selectedItem?.profilePicture && (
-                            <img
-                                src={selectedItem.profilePicture}
-                                alt="Profile"
-                                style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '15px' }}
-                            />
-                        )}
+                    <div className="outer-container d-flex justify-content-center align-items-center">
+                        <div className="circle-container-profile-img">
+                            {selectedItem?.profilePicture && (
+                                <img
+                                    src={selectedItem.profilePicture}
+                                    alt="Profile"
+                                    className='profile-img'
+                                />
+                            )}
+                        </div>
                     </div>
+
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input id="name" className="form-control" type="text" value={selectedItem?.name || ''} readOnly />
